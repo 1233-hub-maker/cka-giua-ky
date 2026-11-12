@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><title>Demo K8s</title>
+<style>body{font-family:sans-serif;max-width:600px;margin:40px auto}pre{background:#eee;padding:12px}</style></head>
+<body>
+<h1>Demo Docker + Kubernetes</h1>
+<p>Frontend version: <b>__FRONTEND_VERSION__</b></p>
+<button onclick="load()">Gọi backend</button>
+<pre id="out">Bấm nút để gọi /api/info</pre>
+<script>
+async function load(){
+  const r = await fetch('/api/info'); 
+  document.getElementById('out').textContent = JSON.stringify(await r.json(), null, 2);
+}
+</script>
+</body></html>
