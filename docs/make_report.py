@@ -45,6 +45,25 @@ class Shot(Flowable):
         c.drawString(0, 0.1 * cm, "Hình: " + s.c)
 
 
+import os
+from reportlab.platypus import Image, KeepTogether
+from reportlab.lib.utils import ImageReader
+
+
+def shot(n, caption, h=5.2 * cm):
+    """Dùng docs/images/<n>.png (hoặc .jpg) nếu có, nếu không thì để khung trống."""
+    for ext in ("png", "jpg", "jpeg"):
+        path = os.path.join("docs", "images", "%s.%s" % (n, ext))
+        if os.path.exists(path):
+            iw, ih = ImageReader(path).getSize()
+            maxw, maxh = 16.5 * cm, max(h * 1.5, 6 * cm)
+            k = min(maxw / iw, maxh / ih)
+            return KeepTogether([Image(path, iw * k, ih * k),
+                                 Paragraph("<i>Hình: %s</i>" % caption,
+                                           ParagraphStyle("cap", fontName="A", fontSize=9, spaceAfter=8))])
+    return Shot(caption, h)
+
+
 class Diagram(Flowable):
     def wrap(s, aw, ah):
         s.w = aw
@@ -133,7 +152,7 @@ story += [
          "# phiên bản mới\n"
          "docker build -t dami1705/demo-backend:v2 --build-arg APP_VERSION=v2 app/backend\n"
          "docker push dami1705/demo-backend:v2"),
-    Shot("Trang Docker Hub hiển thị repo demo-backend, demo-frontend và các tag v1, v2", 3.8 * cm),
+    shot(1, "Trang Docker Hub hiển thị repo demo-backend, demo-frontend và các tag v1, v2", 3.8 * cm),
     PageBreak()]
 
 story += [
@@ -146,7 +165,7 @@ story += [
          "kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml\n"
          "# trên worker1, worker2\n"
          "sudo kubeadm join 172.16.0.4:6443 --token <token> --discovery-token-ca-cert-hash sha256:<hash>"),
-    Shot("kubectl get nodes -o wide: 3 node cp, worker1, worker2 đều Ready", 4 * cm),
+    shot(2, "kubectl get nodes -o wide: 3 node cp, worker1, worker2 đều Ready", 4 * cm),
     P("4. Triển khai ứng dụng lên Kubernetes", H1),
     P("Toàn bộ tài nguyên khai báo trong thư mục <i>k8s/</i> và tạo bằng <i>kubectl apply -f k8s/</i>: "
       "Namespace <b>demo-app</b>; hai Deployment (<b>backend</b>, <b>frontend</b>) mỗi cái 2 replicas, có "
@@ -154,8 +173,8 @@ story += [
       "<i>kubernetes.io/hostname</i> để dàn Pod lên cả 2 worker; Service <b>backend</b> (ClusterIP 3000) để "
       "frontend gọi backend qua DNS nội bộ; Service <b>frontend</b> (NodePort 30080) để truy cập từ trình duyệt."),
     code("kubectl apply -f k8s/\nkubectl get all -n demo-app -o wide"),
-    Shot("kubectl get pods -n demo-app -o wide: Pod trải trên worker1 và worker2", 3.6 * cm),
-    Shot("Trình duyệt truy cập http://23.100.92.133:30080, nút Gọi backend trả về JSON", 3.6 * cm),
+    shot(3, "kubectl get pods -n demo-app -o wide: Pod trải trên worker1 và worker2", 3.6 * cm),
+    shot(4, "Trình duyệt truy cập http://23.100.92.133:30080, nút Gọi backend trả về JSON", 3.6 * cm),
     PageBreak()]
 
 story += [
@@ -165,7 +184,7 @@ story += [
       "thêm Pod và lập lịch lên các worker."),
     code("kubectl scale deploy/backend -n demo-app --replicas=4\n"
          "kubectl get pods -n demo-app -l app=backend -o wide"),
-    Shot("Backend có 4 Pod Running trên các worker", 4.2 * cm),
+    shot(5, "Backend có 4 Pod Running trên các worker", 4.2 * cm),
     P("5.2 Cập nhật phiên bản mới và rollback", H2),
     P("Build image v2, push lên Docker Hub rồi đổi image của Deployment. Rolling update tạo Pod mới trước rồi "
       "mới xóa Pod cũ nên ứng dụng không gián đoạn. Sau đó dùng <i>rollout undo</i> để quay về v1."),
@@ -173,7 +192,7 @@ story += [
          "kubectl rollout status deploy/backend -n demo-app\n"
          "kubectl rollout history deploy/backend -n demo-app\n"
          "kubectl rollout undo deploy/backend -n demo-app"),
-    Shot("API trả về version v2 sau khi cập nhật, và v1 sau khi rollback", 4.2 * cm),
+    shot(6, "API trả về version v2 sau khi cập nhật, và v1 sau khi rollback", 4.2 * cm),
     PageBreak()]
 
 story += [
@@ -192,9 +211,9 @@ story += [
       "được lập lịch lên worker1."),
     P("4) Khi bật lại worker2, node trở về Ready nhưng các Pod <b>không tự chuyển ngược</b>, vì scheduler không "
       "cân bằng lại Pod đang chạy. Có thể dùng <i>kubectl rollout restart</i> để dàn lại."),
-    Shot("kubectl get nodes -w: worker2 chuyển sang NotReady", 3.4 * cm),
-    Shot("kubectl get pods -o wide -w: Pod được thay thế trên worker1", 3.4 * cm),
-    Shot("Ứng dụng vẫn truy cập được qua worker1 khi worker2 đã tắt", 3.4 * cm),
+    shot(7, "kubectl get nodes -w: worker2 chuyển sang NotReady", 3.4 * cm),
+    shot(8, "kubectl get pods -o wide -w: Pod được thay thế trên worker1", 3.4 * cm),
+    shot(9, "Ứng dụng vẫn truy cập được qua worker1 khi worker2 đã tắt", 3.4 * cm),
     PageBreak()]
 
 story += [P("6. Khó khăn gặp phải và cách xử lý", H1)]
